@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#10b981">
+  <title>WorkNear — Find Work. Work Nearby. Earn.</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+
+  <div id="appRoot">
+
+    <!-- Global Top Bar Above Application: Worker / Employer / Admin Switcher -->
+    <div class="role-switch-bar" id="roleSwitchBar">
+      <div class="brand-mini" onclick="switchAppRole('worker')" style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
+        <span style="font-size: 13px;">⚡</span>
+        <span style="font-weight: 800; font-size: 11px; letter-spacing: 0.5px;">WORKNEAR</span>
+      </div>
+      <div class="role-pills">
+        <button class="role-pill active" id="pillWorker" onclick="switchAppRole('worker')">👨‍🎓 Worker</button>
+        <button class="role-pill" id="pillEmployer" onclick="switchAppRole('employer')">🏪 Employer</button>
+        <button class="role-pill" id="pillAdmin" onclick="switchAppRole('admin')">🛡️ Admin</button>
+      </div>
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌓</button>
+    </div>
+
+    <!-- Global App Header (Top Nav) -->
+    <header class="top-nav" id="topNavBar" style="display: none;">
+      <div class="nav-left">
+        <div class="brand-badge" onclick="navigateTo('screenWorkerHome')">
+          <div class="brand-icon-box">⚡</div>
+          <div>
+            <div class="brand-title">WORKNEAR</div>
+            <div class="brand-sub">Find Work • Work Nearby • Earn</div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <button class="icon-btn" onclick="navigateTo('screenNotifications')" title="Notifications">
+          🔔
+          <span class="notification-dot" id="notifBadge"></span>
+        </button>
+        <button class="icon-btn" onclick="navigateTo('screenProfile')" title="My Profile">
+          👤
+        </button>
+      </div>
+    </header>
+
+    <!-- Global App Toast Notification -->
+    <div class="app-toast" id="appToast">
+      <span id="toastIcon">✨</span>
+      <span id="toastMessage">Notification</span>
+    </div>
+
+    <!-- Main Screens Viewport -->
+    <main class="screens-viewport">
+
+      <!-- ====================================================================
+           1. SPLASH SCREEN
+           ==================================================================== -->
+      <section class="screen-view active" id="screenSplash">
+        <div style="min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;">
+          <div style="width: 88px; height: 88px; border-radius: 26px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #fff; box-shadow: 0 12px 30px var(--primary-glow); margin-bottom: 24px; animation: pulseAnim 2s infinite;">
+            ⚡
+          </div>
+          <h1 style="font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 6px;">WORKNEAR</h1>
+          <p style="font-size: 15px; color: var(--text-secondary); margin-bottom: 36px; font-weight: 500;">
+            Find Work. Work Nearby. Earn.
+          </p>
+
+          <div style="width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn btn-primary btn-block" onclick="navigateTo('screenOnboarding')">
+              Get Started →
+            </button>
+            <button class="btn btn-outline btn-block" onclick="navigateTo('screenLogin')">
+              Sign In to Account
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           2. ONBOARDING (3 SCREENS CAROUSEL)
+           ==================================================================== -->
+      <section class="screen-view" id="screenOnboarding">
+        <div class="onboard-slide" id="onboardSlide">
+          <div class="onboard-graphic" id="onboardGraphic">📍</div>
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 8px;" id="onboardTitle">Find Nearby Jobs</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); max-width: 300px; margin: 0 auto;" id="onboardDesc">
+            Discover verified micro-jobs within your selected 22 KM radius in real time.
+          </p>
+
+          <div class="onboard-dots">
+            <span class="onboard-dot active" id="dot0"></span>
+            <span class="onboard-dot" id="dot1"></span>
+            <span class="onboard-dot" id="dot2"></span>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="navigateTo('screenLogin')">Skip</button>
+            <button class="btn btn-primary" style="flex: 2;" id="onboardNextBtn" onclick="nextOnboardingSlide()">Next →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           3. LOGIN SCREEN (MOBILE + PASSWORD / OTP)
+           ==================================================================== -->
+      <section class="screen-view" id="screenLogin">
+        <div class="card" style="margin-top: 20px;">
+          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Welcome to WorkNear</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Enter your registered credentials to sign in</p>
+
+          <div class="role-hint-box" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Logging in as:</span>
+            <span id="loginRoleBadge" class="badge badge-approved" style="font-size: 11px;">👨‍🎓 Worker</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mobile Number *</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="tel" class="form-control" id="loginPhoneInput" placeholder="Enter 10-digit mobile number" value="" maxlength="10" style="flex: 1;">
+              <button type="button" class="btn btn-outline" id="loginSendOtpBtn" style="white-space: nowrap; padding: 0 14px; font-size: 12px; font-weight: 700;" onclick="requestLoginOtp()">
+                Get OTP
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" id="loginOtpGroup" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Enter OTP *</label>
+              <span id="loginOtpHint" style="font-size: 11px; color: var(--primary); font-weight: 600;"></span>
+            </div>
+            <input type="text" class="form-control" id="loginOtpInput" placeholder="Enter 4-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 18px; font-weight: 700; text-align: center;">
+          </div>
+
+          <button class="btn btn-primary btn-block" id="loginSubmitBtn" onclick="verifyAndLogin()">
+            Verify OTP & Login →
+          </button>
+
+          <div style="text-align: center; margin-top: 20px;">
+            <span style="font-size: 13px; color: var(--text-secondary);">Don't have an account?</span>
+            <button class="btn btn-sm btn-outline" style="margin-left: 6px;" onclick="navigateTo('screenRegister')">Register</button>
+          </div>
+
+          <p style="font-size: 11px; color: var(--text-tertiary); text-align: center; margin-top: 18px;">
+            By continuing, you agree to WorkNear's <a href="#" style="color:var(--primary);">Terms of Service</a> & <a href="#" style="color:var(--primary);">Privacy Policy</a>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           4. REGISTRATION SCREEN (WORKER / EMPLOYER)
+           ==================================================================== -->
+      <section class="screen-view" id="screenRegister">
+        <div class="card">
+          <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Create Account</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Join WORKNEAR to find nearby jobs and earn</p>
+
+          <div class="role-hint-box" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
+            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Account Type:</span>
+            <span id="regRoleBadge" class="badge badge-approved" style="font-size: 11px;">👨‍🎓 Worker</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" class="form-control" id="regFullName" placeholder="Enter your full name" value="">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-col">
+              <label class="form-label">Mobile Number *</label>
+              <div style="display: flex; gap: 6px;">
+                <input type="tel" class="form-control" id="regPhone" placeholder="10-digit number" value="" maxlength="10" style="flex: 1;">
+                <button type="button" class="btn btn-outline" id="regSendOtpBtn" style="white-space: nowrap; padding: 0 10px; font-size: 11px; font-weight: 700;" onclick="requestRegisterOtp()">
+                  Get OTP
+                </button>
+              </div>
+            </div>
+            <div class="form-group form-col">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-control" id="regDob" value="">
+            </div>
+          </div>
+
+          <div class="form-group" id="regOtpGroup" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="form-label" style="margin-bottom: 0;">Verification OTP *</label>
+              <span id="regOtpHint" style="font-size: 11px; color: var(--primary); font-weight: 600;"></span>
+            </div>
+            <input type="text" class="form-control" id="regOtpInput" placeholder="Enter 4-digit OTP" maxlength="6" style="letter-spacing: 4px; font-size: 18px; font-weight: 700; text-align: center;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address (Optional)</label>
+            <input type="email" class="form-control" id="regEmail" placeholder="Enter email address" value="">
+          </div>
+
+          <div class="form-group" id="regCategoryGroup">
+            <label class="form-label">Preferred Work Category</label>
+            <select class="form-control" id="regCategory">
+              <option value="Retail & Supermarket Helper">Retail & Supermarket Helper</option>
+              <option value="Event Promotion & Catering">Event Promotion & Catering</option>
+              <option value="Local Delivery & Errands">Local Delivery & Errands</option>
+              <option value="Office Filing & Data Entry">Office Filing & Data Entry</option>
+              <option value="General Shift Assistant">General Shift Assistant</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="regHoursGroup">
+            <label class="form-label">Available Hours</label>
+            <input type="text" class="form-control" id="regHours" placeholder="e.g. Evenings 4 PM - 9 PM, Weekends" value="">
+          </div>
+
+          <div class="form-group" id="regSkillsGroup">
+            <label class="form-label">Your Skills (Comma separated)</label>
+            <input type="text" class="form-control" id="regSkills" placeholder="e.g. Inventory, Customer Service, Typing" value="">
+          </div>
+
+          <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 12px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">📍</span>
+            <div>
+              <strong>Location Permission</strong><br>
+              <span style="color: var(--text-secondary);">Used for 22 KM radius matching</span>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="regSubmitBtn" onclick="submitWorkerRegistration()">
+            Create Account & Open App →
+          </button>
+
+          <div style="text-align: center; margin-top: 14px;">
+            <span style="font-size: 13px; color: var(--text-secondary);">Already have an account?</span>
+            <button class="btn btn-sm btn-outline" style="margin-left: 6px;" onclick="navigateTo('screenLogin')">Login</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           5. WORKER HOME DASHBOARD (PRIMARY SCREEN)
+           ==================================================================== -->
+      <section class="screen-view" id="screenWorkerHome">
+        
+        <!-- Profile Greeting -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 46px; height: 46px; border-radius: var(--radius-full); background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; border: 2px solid var(--secondary);">
+              👨‍🎓
+            </div>
+            <div>
+              <p style="font-size: 12px; color: var(--text-tertiary); font-weight: 600;">Good morning,</p>
+              <h3 style="font-size: 17px; font-weight: 800;" id="homeWorkerName">Worker User</h3>
+            </div>
+          </div>
+          <div class="badge badge-approved" style="font-size: 12px; padding: 6px 12px; border-radius: 20px; cursor: pointer;" onclick="navigateTo('screenEarnings')">
+            <span>⭐ Verified Worker</span>
+          </div>
+        </div>
+
+        <!-- HERO AVAILABILITY CARD (WORK ON / OFF) -->
+        <div class="availability-card on" id="heroAvailabilityCard">
+          <div class="avail-left">
+            <div class="pulse-indicator"></div>
+            <div class="avail-text">
+              <h3 id="availTitleText">WORK ON 🟢</h3>
+              <p id="availSubtitleText">You're available for nearby jobs</p>
+            </div>
+          </div>
+          <label class="switch-control">
+            <input type="checkbox" id="mainDutySwitch" checked onchange="handleDutySwitchChange()">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="stats-grid">
+          <div class="stat-card" onclick="navigateTo('screenEarnings')">
+            <div class="stat-label">Today</div>
+            <div class="stat-val highlight" id="statTodayEarnings">₹450</div>
+          </div>
+          <div class="stat-card" onclick="navigateTo('screenEarnings')">
+            <div class="stat-label">This Week</div>
+            <div class="stat-val" id="statWeekEarnings">₹1,850</div>
+          </div>
+          <div class="stat-card" onclick="navigateTo('screenJobHistory')">
+            <div class="stat-label">Completed</div>
+            <div class="stat-val" id="statCompletedJobs">6 Jobs</div>
+          </div>
+        </div>
+
+        <!-- RADIUS SELECTOR BAR -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+          <h4 style="font-size: 14px; font-weight: 700;">Matching Radius</h4>
+          <span style="font-size: 12px; color: var(--primary); font-weight: 700;" id="currentRadiusLabel">22 KM Radius</span>
+        </div>
+        <div class="radius-chip-bar">
+          <button class="radius-chip" onclick="setRadiusFilter(5, this)">5 KM</button>
+          <button class="radius-chip" onclick="setRadiusFilter(10, this)">10 KM</button>
+          <button class="radius-chip" onclick="setRadiusFilter(15, this)">15 KM</button>
+          <button class="radius-chip active" onclick="setRadiusFilter(22, this)">22 KM (Default)</button>
+          <button class="radius-chip" onclick="setRadiusFilter(25, this)">25 KM</button>
+        </div>
+
+        <!-- NEARBY JOBS PREVIEW SECTION -->
+        <div class="card-header-row" style="margin-top: 10px;">
+          <h4 class="card-title">Nearby Available Jobs</h4>
+          <button class="btn btn-sm btn-outline" onclick="navigateTo('screenNearbyJobs')">View All (Map)</button>
+        </div>
+
+        <div id="homeJobsContainer">
+          <!-- Dynamically populated job cards -->
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           6. NEARBY JOBS EXPLORER SCREEN (SEARCH + MAP / LIST TOGGLE)
+           ==================================================================== -->
+      <section class="screen-view" id="screenNearbyJobs">
+        
+        <!-- Search & Toggle Bar -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" class="form-control" id="jobSearchInput" placeholder="Search by job title or keyword..." oninput="filterJobsBySearch()">
+          <button class="btn btn-secondary btn-sm" id="viewToggleBtn" onclick="toggleMapListView()">
+            🗺️ Map
+          </button>
+        </div>
+
+        <!-- Radius Selector -->
+        <div class="radius-chip-bar">
+          <button class="radius-chip" onclick="setRadiusFilter(5, this)">5 KM</button>
+          <button class="radius-chip" onclick="setRadiusFilter(10, this)">10 KM</button>
+          <button class="radius-chip" onclick="setRadiusFilter(15, this)">15 KM</button>
+          <button class="radius-chip active" onclick="setRadiusFilter(22, this)">22 KM</button>
+          <button class="radius-chip" onclick="setRadiusFilter(25, this)">25 KM</button>
+        </div>
+
+        <!-- Simulated Map View Container (Toggleable) -->
+        <div class="map-container" id="jobsMapView" style="display: none;">
+          <!-- SVG Background Grid -->
+          <svg class="map-svg-grid" width="100%" height="100%">
+            <pattern id="gridPattern" width="30" height="30" patternUnits="userSpaceOnUse">
+              <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#94a3b8" stroke-width="0.5"/>
+            </pattern>
+            <rect width="100%" height="100%" fill="url(#gridPattern)"/>
+          </svg>
+
+          <!-- 22 KM Radius Simulation Circle -->
+          <div class="radius-overlay-circle" style="width: 170px; height: 170px;"></div>
+
+          <!-- User GPS Pin -->
+          <div class="map-pin" style="top: 50%; left: 50%;">
+            <div class="pin-bubble" style="background:var(--primary);">You are here</div>
+            <div class="pin-circle" style="background:#2563eb;"></div>
+          </div>
+
+          <!-- Job Pins -->
+          <div class="map-pin" style="top: 36%; left: 62%;" onclick="openJobDetails('job-101')">
+            <div class="pin-bubble">₹450 • Supermarket</div>
+            <div class="pin-circle"></div>
+          </div>
+
+          <div class="map-pin" style="top: 65%; left: 40%;" onclick="openJobDetails('job-102')">
+            <div class="pin-bubble">₹600 • Cafe Counter</div>
+            <div class="pin-circle"></div>
+          </div>
+
+          <div class="map-pin" style="top: 42%; left: 32%;" onclick="openJobDetails('job-103')">
+            <div class="pin-bubble">₹350 • Pamphlet Promo</div>
+            <div class="pin-circle"></div>
+          </div>
+        </div>
+
+        <!-- Job Cards List View -->
+        <div id="allNearbyJobsContainer">
+          <!-- Injected via JavaScript -->
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           7. JOB DETAILS SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenJobDetails">
+        <button class="btn btn-sm btn-outline" style="margin-bottom: 12px;" onclick="navigateBack()">
+          ← Back to Jobs
+        </button>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <h2 style="font-size: 19px; font-weight: 800;" id="detailJobTitle">Supermarket Stock Helper</h2>
+              <p style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;" id="detailBusinessName">
+                🏢 Sri Murugan Stores • ⭐ 4.8 (34 reviews)
+              </p>
+            </div>
+            <div class="price-pill" id="detailPayBadge">₹450</div>
+          </div>
+
+          <div class="job-tags-row" style="margin: 12px 0;">
+            <span class="job-tag distance-badge" id="detailDistance">📍 2.4 KM away</span>
+            <span class="job-tag" id="detailDuration">⏱ 3 Hours</span>
+            <span class="job-tag" id="detailWorkers">👥 2 Workers needed</span>
+            <span class="job-tag">📦 Retail Support</span>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Job Description</h4>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;" id="detailDesc">
+              Need 2 students to assist in shelf stocking, product labeling, and arranging grocery inventory in supermarket aisles.
+            </p>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Work Timings & Location</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">
+              ⏰ <strong>Shift:</strong> Today, 5:00 PM - 8:00 PM (3 Hrs)<br>
+              📌 <strong>Address:</strong> <span id="detailAddress">T. Nagar Main Road, Landmark: Opp Bus Depot</span>
+            </p>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-light); padding-top: 12px; margin-top: 12px;">
+            <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Required Work Proof</h4>
+            <p style="font-size: 13px; color: var(--text-secondary);">
+              📸 1 photo of completed stocked rack with GPS timestamp.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="openInGoogleMaps()">
+              🗺️ Open in Maps
+            </button>
+            <button class="btn btn-primary" style="flex: 2;" id="applyDetailBtn" onclick="applyCurrentJob()">
+              Apply for Job (₹450)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           8. JOB ACCEPTED / CONGRATULATIONS SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenJobAccepted">
+        <div class="card" style="text-align: center; padding: 32px 20px;">
+          <div style="font-size: 54px; margin-bottom: 12px;">🎉</div>
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">Application Submitted!</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); max-width: 320px; margin: 0 auto 20px auto;">
+            The employer has been notified. Head to the work location to verify GPS and start the task.
+          </p>
+
+          <div style="background: var(--bg-subtle); padding: 14px; border-radius: var(--radius-sm); text-align: left; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-weight: 700; font-size: 14px;">
+              <span id="acceptedJobTitle">Supermarket Helper</span>
+              <span style="color:var(--primary);" id="acceptedPay">₹450</span>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;" id="acceptedAddress">
+              📌 T. Nagar Main Road
+            </p>
+          </div>
+
+          <button class="btn btn-primary btn-block" onclick="navigateTo('screenLocationVerify')">
+            📍 Verify Location & Start Job
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           9. LOCATION VERIFICATION SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenLocationVerify">
+        <div class="card">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Site Location Verification</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+            You must be within 200 meters of the work site to unlock the Start Job button.
+          </p>
+
+          <!-- Interactive Radar Map Box -->
+          <div class="map-container" style="height: 180px;">
+            <div class="radius-overlay-circle" style="width: 120px; height: 120px;"></div>
+            <div class="map-pin" style="top: 50%; left: 50%;">
+              <div class="pin-bubble" style="background:#16a34a;">Work Site</div>
+              <div class="pin-circle" style="background:#16a34a;"></div>
+            </div>
+            <div class="map-pin" style="top: 54%; left: 46%;">
+              <div class="pin-bubble" style="background:#2563eb;">You (85m)</div>
+              <div class="pin-circle" style="background:#2563eb;"></div>
+            </div>
+          </div>
+
+          <div style="background: var(--primary-light); border: 1.5px solid var(--primary); padding: 14px; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; margin-bottom: 18px;">
+            <span style="font-size: 24px;">✓</span>
+            <div>
+              <strong style="color: var(--primary-dark); font-size: 14px;">Location Verified ✓</strong>
+              <p style="font-size: 12px; color: var(--text-secondary);">You're 85 meters from the job location (within limit).</p>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block" onclick="startActiveJobTracker()">
+            ⏱️ Start Job & Activate Timer
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           10. ACTIVE JOB SCREEN (LIVE TIMER + TASK CHECKLIST)
+           ==================================================================== -->
+      <section class="screen-view" id="screenActiveJob">
+        <!-- Live Countdown Timer -->
+        <div class="timer-hero-box">
+          <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary);">
+            Time Elapsed on Site
+          </span>
+          <div class="timer-digits" id="activeJobTimerDigits">01:42:18</div>
+          <div class="badge badge-started">● Active Shift in Progress</div>
+        </div>
+
+        <!-- Task Checklist -->
+        <div class="checklist-box">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">Shift Tasks Checklist</h4>
+          
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <span>Report to store supervisor at billing counter</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox" checked>
+            <span>Unpack biscuit carton boxes & verify quantities</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox">
+            <span>Arrange products sequentially on aisle racks</span>
+          </label>
+          <label class="checklist-item">
+            <input type="checkbox">
+            <span>Take clear photo of arranged shelves for proof</span>
+          </label>
+        </div>
+
+        <div class="card">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Work Proof Requirement</h4>
+          <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+            Take 1 or 2 live photos of your completed shelf arrangement.
+          </p>
+
+          <button class="btn btn-primary btn-block" onclick="navigateTo('screenPhotoProof')">
+            📸 Take / Upload Photo Proof →
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           11. PHOTO PROOF SCREEN (IMAGE PREVIEWS, GPS STAMP, SUBMIT)
+           ==================================================================== -->
+      <section class="screen-view" id="screenPhotoProof">
+        <div class="card">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Upload Work Proof</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Attach photo proof to verify task completion and receive payment.
+          </p>
+
+          <!-- Upload Dropzone / Camera Trigger -->
+          <div class="upload-dropzone" onclick="$('proofFileInput').click()">
+            <div style="font-size: 38px; margin-bottom: 8px;">📷</div>
+            <strong style="font-size: 14px; display: block; margin-bottom: 4px;">Tap to Open Camera / Select Photo</strong>
+            <span style="font-size: 12px; color: var(--text-tertiary);">Supports JPG, PNG with GPS metadata</span>
+            <input type="file" id="proofFileInput" accept="image/*" capture="environment" style="display: none;" onchange="handleProofImageSelected(event)">
+          </div>
+
+          <!-- Proof Preview Grid -->
+          <div class="photo-preview-grid" id="proofPreviewGrid">
+            <div class="photo-preview-card">
+              <img src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=400&q=80" alt="Supermarket Shelf Proof">
+              <div class="photo-badge-gps">📍 13.0827°N, 80.2707°E</div>
+            </div>
+          </div>
+
+          <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-sm); font-size: 12px; margin-bottom: 16px;">
+            🕒 <strong>Timestamp:</strong> Today at <span id="proofTimestamp">04:30 PM</span><br>
+            🛰️ <strong>GPS Tag:</strong> Chennai Central (Accuracy 6m)
+          </div>
+
+          <button class="btn btn-primary btn-block" onclick="submitWorkProof()">
+            Submit Proof for Approval (₹450)
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           12. JOB COMPLETION & SUBMISSION SUCCESS SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenJobCompleted">
+        <div class="card" style="text-align: center; padding: 36px 20px;">
+          <div style="width: 70px; height: 70px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 16px auto;">
+            ✓
+          </div>
+          <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">Work Submitted!</h2>
+          <p style="font-size: 14px; color: var(--text-secondary); max-width: 320px; margin: 0 auto 20px auto;">
+            Your employer is reviewing the photo proof. Payment will be released directly upon employer approval.
+          </p>
+
+          <div style="background: var(--bg-subtle); padding: 16px; border-radius: var(--radius-sm); text-align: left; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 13px; color: var(--text-secondary);">Expected Payment:</span>
+              <strong style="color: var(--primary); font-size: 16px;">₹450</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+              <span style="font-size: 13px; color: var(--text-secondary);">Verification SLA:</span>
+              <span style="font-size: 13px; font-weight: 600;">Within 2 Hours</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+              <span style="font-size: 13px; color: var(--text-secondary);">Status:</span>
+              <span class="badge badge-submitted">Under Review</span>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="openRatingModal()">
+              ⭐ Rate Employer
+            </button>
+            <button class="btn btn-primary" style="flex: 1;" onclick="navigateTo('screenWorkerHome')">
+              Return Home
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           13. EARNINGS SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenEarnings">
+        <h2 style="font-size: 19px; font-weight: 800; margin-bottom: 14px;">Earnings Summary</h2>
+
+        <!-- Earnings Breakup Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Today</div>
+            <div class="stat-val highlight">₹450</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">This Week</div>
+            <div class="stat-val">₹1,850</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-val">₹6,400</div>
+          </div>
+        </div>
+
+        <!-- Direct Per-Job Payout Info Card -->
+        <div class="card" style="background: linear-gradient(135deg, var(--bg-card), var(--primary-light)); border: 1.5px solid var(--primary); padding: 18px;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <span style="font-size: 30px;">💳</span>
+            <div>
+              <strong style="font-size: 14px; color: var(--primary-dark);">Direct Per-Job Payments</strong>
+              <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+                Payments are settled directly per completed shift upon employer verification.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h4 style="font-size: 15px; font-weight: 700; margin: 18px 0 10px 0;">Recent Earnings History</h4>
+
+        <!-- Transactions List -->
+        <div id="transactionsList">
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 14px;">Supermarket Shelf Restock</strong>
+                <p style="font-size: 11px; color: var(--text-tertiary);">Today, 6:15 PM • Sri Murugan Stores</p>
+              </div>
+              <div style="text-align: right;">
+                <span style="color: var(--primary); font-weight: 800; font-size: 15px;">+₹450</span>
+                <div style="font-size: 10px; color: var(--primary); font-weight: 700;">Directly Paid ✓</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 14px;">Evening Cafe Counter Help</strong>
+                <p style="font-size: 11px; color: var(--text-tertiary);">Yesterday • Chai Point Anna Nagar</p>
+              </div>
+              <div style="text-align: right;">
+                <span style="color: var(--primary); font-weight: 800; font-size: 15px;">+₹600</span>
+                <div style="font-size: 10px; color: var(--primary); font-weight: 700;">Directly Paid ✓</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 14px;">Flyer Distribution Drive</strong>
+                <p style="font-size: 11px; color: var(--text-tertiary);">12 Sep 2026 • EduExpo Metro</p>
+              </div>
+              <div style="text-align: right;">
+                <span style="color: var(--primary); font-weight: 800; font-size: 15px;">+₹350</span>
+                <div style="font-size: 10px; color: var(--primary); font-weight: 700;">Directly Paid ✓</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           15. JOB HISTORY SCREEN (TABS: APPLIED, ACTIVE, COMPLETED)
+           ==================================================================== -->
+      <section class="screen-view" id="screenJobHistory">
+        <h2 style="font-size: 19px; font-weight: 800; margin-bottom: 12px;">My Work History</h2>
+
+        <div class="auth-tabs" style="margin-bottom: 14px;">
+          <button class="tab-btn active" onclick="switchHistoryTab('applied', this)">Applied</button>
+          <button class="tab-btn" onclick="switchHistoryTab('active', this)">Active</button>
+          <button class="tab-btn" onclick="switchHistoryTab('completed', this)">Completed</button>
+        </div>
+
+        <div id="historyListContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           16. WORKER / USER PROFILE SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenProfile">
+        <!-- Header Card -->
+        <div class="card" style="text-align: center;">
+          <div style="width: 76px; height: 76px; border-radius: 50%; background: var(--secondary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 36px; margin: 0 auto 12px auto; border: 3px solid var(--primary);">
+            👤
+          </div>
+          <h3 style="font-size: 18px; font-weight: 800;" id="profileUserName">User Name</h3>
+          <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;" id="profileUserSub">Verified Member ✓</p>
+          <div style="display: flex; justify-content: center; gap: 14px; margin-top: 10px; font-size: 13px;">
+            <span>⭐ <strong>5.0</strong> Rating</span>
+            <span id="profileRoleBadge" class="badge badge-approved">Worker</span>
+          </div>
+        </div>
+
+        <!-- Personal & Registration Info Card -->
+        <div class="card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h4 style="font-size: 14px; font-weight: 700;">Profile Details</h4>
+            <button class="btn btn-sm btn-outline" onclick="toggleEditProfileForm()">✏️ Edit Profile</button>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-secondary);">📱 Mobile Number:</span>
+              <strong id="profileUserPhone">-</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-secondary);">✉️ Email Address:</span>
+              <strong id="profileUserEmail">-</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-secondary);">📅 Date of Birth:</span>
+              <strong id="profileUserDob">-</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-secondary);">💼 Preferred Work:</span>
+              <strong id="profileUserCategory">-</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; padding-bottom: 6px; border-bottom: 1px solid var(--border-light);">
+              <span style="color: var(--text-secondary);">⏰ Available Hours:</span>
+              <strong id="profileUserHours">-</strong>
+            </div>
+
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-secondary);">🆔 Account User ID:</span>
+              <small style="color: var(--primary); font-weight: 700; font-family: monospace;" id="profileUserId">-</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline Edit Profile Form (Hidden by default) -->
+        <div class="card" id="editProfileCard" style="display: none; border: 2px solid var(--primary);">
+          <h4 style="font-size: 15px; font-weight: 800; margin-bottom: 12px; color: var(--primary);">Edit Profile Information</h4>
+          
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="editProfileName">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-control" id="editProfileEmail">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" class="form-control" id="editProfileDob">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Preferred Work Category</label>
+            <input type="text" class="form-control" id="editProfileCategory">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Available Hours</label>
+            <input type="text" class="form-control" id="editProfileHours">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Skills (Comma separated)</label>
+            <input type="text" class="form-control" id="editProfileSkills">
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 14px;">
+            <button class="btn btn-outline" style="flex: 1;" onclick="toggleEditProfileForm()">Cancel</button>
+            <button class="btn btn-primary" style="flex: 2;" onclick="saveEditedProfile()">Save Changes</button>
+          </div>
+        </div>
+
+        <!-- My Skills Card -->
+        <div class="card">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 8px;">My Skills</h4>
+          <div class="job-tags-row" id="profileUserSkillsContainer">
+            <span class="job-tag">✨ Registered Worker</span>
+          </div>
+        </div>
+
+        <!-- Preferences Card -->
+        <div class="card">
+          <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">App Preferences</h4>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-light);">
+            <span style="font-size: 14px;">Dark Theme Mode</span>
+            <label class="switch-control">
+              <input type="checkbox" id="profileDarkModeToggle" onchange="toggleTheme()">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-light); cursor: pointer;" onclick="navigateTo('screenSupport')">
+            <span style="font-size: 14px;">Help & Report Support</span>
+            <span style="color: var(--text-tertiary);">›</span>
+          </div>
+
+          <button class="btn btn-outline btn-block" style="margin-top: 16px; color: var(--danger); border-color: var(--danger);" onclick="logoutWorker()">
+            🚪 Log Out Account
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           17. NOTIFICATIONS SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenNotifications">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h2 style="font-size: 19px; font-weight: 800;">Notifications</h2>
+          <button class="btn btn-sm btn-outline" onclick="clearNotifications()">Mark all read</button>
+        </div>
+
+        <div id="notificationsList">
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid var(--primary);">
+            <strong style="font-size: 13px;">💰 ₹450 Payment Released</strong>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+              Sri Murugan Stores approved your proof for 'Supermarket Helper'.
+            </p>
+            <small style="color: var(--text-tertiary); font-size: 10px;">10 mins ago</small>
+          </div>
+
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid var(--secondary);">
+            <strong style="font-size: 13px;">📍 New Job in 22 KM: Cafe Assistant</strong>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+              Chai Point (2.1 KM away) is hiring for an evening shift at ₹600.
+            </p>
+            <small style="color: var(--text-tertiary); font-size: 10px;">1 hour ago</small>
+          </div>
+
+          <div class="card" style="padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid var(--accent);">
+            <strong style="font-size: 13px;">⏰ Shift Reminder: Start by 5:00 PM</strong>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">
+              Please reach T. Nagar location on time.
+            </p>
+            <small style="color: var(--text-tertiary); font-size: 10px;">3 hours ago</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           18. REPORT / SUPPORT SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenSupport">
+        <button class="btn btn-sm btn-outline" style="margin-bottom: 12px;" onclick="navigateBack()">
+          ← Back
+        </button>
+
+        <div class="card">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 6px;">Report & Help Center</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Encountered an issue or payment discrepancy? Let our support team know.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">Issue Category</label>
+            <select class="form-control" id="supportCategory">
+              <option value="payment">Payment Delay / Job Payout</option>
+              <option value="employer">Employer Misconduct / Fake Job</option>
+              <option value="gps">GPS Location Verification Error</option>
+              <option value="tech">App Glitch / Technical Issue</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Details</label>
+            <textarea class="form-control" rows="4" placeholder="Describe the issue in detail..."></textarea>
+          </div>
+
+          <button class="btn btn-primary btn-block" onclick="submitSupportTicket()">
+            Submit Ticket
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           19. EMPLOYER HOME & MY JOBS (EMPLOYER FLOW)
+           ==================================================================== -->
+      <section class="screen-view" id="screenEmployerHome">
+        
+        <!-- Employer Dashboard Metrics -->
+        <div class="card" style="background: linear-gradient(135deg, var(--bg-card), var(--bg-subtle));">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 700; text-transform: uppercase;">Employer Dashboard</span>
+              <h3 style="font-size: 18px; font-weight: 800;" id="empBusinessName">My Business</h3>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="navigateTo('screenCreateJob')">
+              ➕ Post Job
+            </button>
+          </div>
+
+          <div class="stats-grid" style="margin-bottom: 0;">
+            <div class="stat-card">
+              <div class="stat-label">Active Jobs</div>
+              <div class="stat-val highlight" id="empActiveJobsCount">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Candidates</div>
+              <div class="stat-val" id="empApplicantsCount">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Spent</div>
+              <div class="stat-val" id="empSpentCount">₹0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs: My Posted Jobs vs All Applied Candidates -->
+        <div class="emp-tabs-bar" style="margin-top: 14px;">
+          <button class="emp-tab-btn active" id="tabEmpJobs" onclick="switchEmployerTab('jobs')">
+            📋 My Posted Jobs (<span id="empTabJobsCount">0</span>)
+          </button>
+          <button class="emp-tab-btn" id="tabEmpCandidates" onclick="switchEmployerTab('candidates')">
+            👥 Applied Candidates (<span id="empTabCandidatesCount">0</span>)
+          </button>
+        </div>
+
+        <div class="card-header-row" style="margin-top: 6px; margin-bottom: 10px;">
+          <h4 class="card-title" id="empListSectionTitle">Manage Posted Jobs & Candidates</h4>
+          <button class="btn btn-sm btn-outline" onclick="loadEmployerJobs()">🔄 Refresh</button>
+        </div>
+
+        <div id="employerJobsContainer">
+          <!-- Injected via JS -->
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           20. EMPLOYER CREATE JOB SCREEN
+           ==================================================================== -->
+      <section class="screen-view" id="screenCreateJob">
+        <button class="btn btn-sm btn-outline" style="margin-bottom: 12px;" onclick="navigateTo('screenEmployerHome')">
+          ← Cancel
+        </button>
+
+        <div class="card">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Post a Micro-Job</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+            Broadcast work to verified workers within 22 KM in real time
+          </p>
+
+          <!-- Quick Fill Templates -->
+          <div style="background: var(--bg-subtle); padding: 10px; border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid var(--border-light);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 6px;">⚡ 1-Click Quick Templates:</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('supermarket')">🛒 Supermarket (₹450)</button>
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('bakery')">🍰 Bakery (₹500)</button>
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('delivery')">📦 Delivery (₹400)</button>
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('bookstall')">📚 Bookstall (₹350)</button>
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('catering')">🍽️ Catering (₹600)</button>
+              <button type="button" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 4px 8px;" onclick="fillJobTemplate('office')">📁 Office (₹400)</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Job Title *</label>
+            <input type="text" class="form-control" id="newJobTitle" placeholder="e.g. Cafe Evening Counter Assistant" oninput="updateLiveJobPreview()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select class="form-control" id="newJobCategory" onchange="updateLiveJobPreview()">
+              <option value="Retail & Supermarket">Retail & Supermarket</option>
+              <option value="Cafe & Bakery">Cafe & Bakery</option>
+              <option value="Local Delivery & Errands">Local Delivery & Errands</option>
+              <option value="Event Promotion & Catering">Event Promotion & Catering</option>
+              <option value="Office Filing & Data Entry">Office Filing & Data Entry</option>
+              <option value="General Shift Assistant">General Shift Assistant</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Job Description</label>
+            <textarea class="form-control" id="newJobDesc" rows="3" placeholder="Explain the specific tasks..." oninput="updateLiveJobPreview()"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-col">
+              <label class="form-label">Duration (Hours) *</label>
+              <input type="number" class="form-control" id="newJobDuration" value="3" min="1" step="0.5" oninput="updateLiveJobPreview()">
+            </div>
+            <div class="form-group form-col">
+              <label class="form-label">Payment (₹) *</label>
+              <input type="number" class="form-control" id="newJobPay" value="450" min="50" oninput="updateLiveJobPreview()">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group form-col">
+              <label class="form-label">Workers Needed</label>
+              <input type="number" class="form-control" id="newJobWorkers" value="1" min="1">
+            </div>
+            <div class="form-group form-col">
+              <label class="form-label">Radius (KM)</label>
+              <input type="number" class="form-control" id="newJobRadius" value="22" min="5" max="25">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Work Site Landmark Address *</label>
+            <input type="text" class="form-control" id="newJobAddress" placeholder="e.g. 12 Anna Nagar 2nd Avenue" oninput="updateLiveJobPreview()">
+          </div>
+
+          <button class="btn btn-secondary btn-block" style="margin-bottom: 16px;" onclick="useCurrentLocationForNewJob()">
+            📍 Set Work Site to My Current GPS
+          </button>
+
+          <!-- LIVE PREVIEW CARD -->
+          <div style="margin-top: 14px;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase;">Worker View Preview</span>
+            <div class="job-card" style="margin-top: 6px; border-color: var(--primary);">
+              <div class="job-top-row">
+                <div class="job-title-group">
+                  <h4 id="previewTitle">Cafe Evening Counter Assistant</h4>
+                  <div class="job-business-name" id="previewBusinessName">🏢 My Business</div>
+                </div>
+                <div class="price-pill" id="previewPay">₹450</div>
+              </div>
+              <p class="job-desc" id="previewDesc">Explain the specific tasks...</p>
+              <div class="job-tags-row">
+                <span class="job-tag distance-badge">📍 0.8 KM</span>
+                <span class="job-tag" id="previewDuration">⏱ 3 Hours</span>
+                <span class="job-tag" id="previewCategoryTag">Retail & Supermarket</span>
+                <span class="job-tag">Radius 22 KM</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-block" style="margin-top: 16px;" onclick="publishNewJob()">
+            🚀 Publish Job to Nearby Workers
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           21. EMPLOYER WORK VERIFICATION SCREEN (SUBMITTED PHOTO AUDIT)
+           ==================================================================== -->
+      <section class="screen-view" id="screenEmployerVerification">
+        <button class="btn btn-sm btn-outline" style="margin-bottom: 12px;" onclick="navigateTo('screenEmployerHome')">
+          ← Back to Employer Dashboard
+        </button>
+
+        <div class="card">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Review Work Proof</h2>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;" id="verificationJobDesc">
+            Worker submitted photo proof for job completion.
+          </p>
+
+          <div style="border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 14px; position: relative; background: #000;">
+            <img id="verificationProofImg" src="https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=600&q=80" style="width: 100%; max-height: 280px; object-fit: contain; display: block;" alt="Proof Image">
+            <div id="verificationProofTag" style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.8); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
+              📍 GPS Verified • Shift Completed
+            </div>
+          </div>
+
+          <div style="background: var(--bg-subtle); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 13px;" id="verificationWorkerInfo">
+            <strong>Worker Candidate:</strong><br>
+            <span>Muthu (Student) • Phone: 9123456780</span>
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-danger" style="flex: 1;" onclick="rejectWorkProofAction()">
+              ✕ Request Re-do
+            </button>
+            <button class="btn btn-primary" style="flex: 2;" id="verificationApproveBtn" onclick="approveAndReleasePaymentAction()">
+              ✓ Approve & Release Payment
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Global Bottom Navigation Bar (Worker App) -->
+    <nav class="bottom-nav" id="mainBottomNav" style="display: none;">
+      <button class="nav-item active" id="navHome" onclick="navigateTo('screenWorkerHome')">
+        <span class="nav-icon">⚡</span>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" id="navJobs" onclick="navigateTo('screenNearbyJobs')">
+        <span class="nav-icon">📍</span>
+        <span>Jobs</span>
+      </button>
+      <button class="nav-item" id="navEarnings" onclick="navigateTo('screenEarnings')">
+        <span class="nav-icon">💰</span>
+        <span>Earnings</span>
+      </button>
+      <button class="nav-item" id="navHistory" onclick="navigateTo('screenJobHistory')">
+        <span class="nav-icon">📋</span>
+        <span>History</span>
+      </button>
+      <button class="nav-item" id="navProfile" onclick="navigateTo('screenProfile')">
+        <span class="nav-icon">👤</span>
+        <span>Profile</span>
+      </button>
+    </nav>
+
+  </div> <!-- End #appRoot -->
+
+  <!-- ====================================================================
+       MODALS & DIALOGS
+       ==================================================================== -->
+
+  <!-- 1. Star Rating Modal -->
+  <div class="modal-overlay" id="modalRating">
+    <div class="bottom-sheet">
+      <div class="sheet-drag-handle"></div>
+      <h3 style="font-size: 18px; font-weight: 800; text-align: center;">Rate Your Employer</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 4px;">
+        How was your experience working with Sri Murugan Stores?
+      </p>
+
+      <div class="star-rating-box" id="starRatingBox">
+        <span class="star active" onclick="setStarRating(1)">★</span>
+        <span class="star active" onclick="setStarRating(2)">★</span>
+        <span class="star active" onclick="setStarRating(3)">★</span>
+        <span class="star active" onclick="setStarRating(4)">★</span>
+        <span class="star active" onclick="setStarRating(5)">★</span>
+      </div>
+
+      <div class="form-group">
+        <textarea class="form-control" rows="3" placeholder="Write an optional review..."></textarea>
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="submitRating()">
+        Submit Review
+      </button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

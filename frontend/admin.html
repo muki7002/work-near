@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorkNear — Admin Control Center</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --dark: #0f172a;
+      --sidebar-bg: #1e293b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* -------------------------------------------------------------
+       ADMIN LOGIN GATEWAY (ONLY FOR ADMIN)
+       ------------------------------------------------------------- */
+    .admin-login-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, #064e3b 0%, #0f172a 40%, #020617 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 99999;
+    }
+
+    .admin-login-box {
+      width: 100%;
+      max-width: 440px;
+      background: rgba(30, 41, 59, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 36px 32px;
+      color: #fff;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.65), 0 0 35px rgba(16, 185, 129, 0.15);
+      animation: modalFadeIn 0.3s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    @keyframes shakeCard {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .shake-error {
+      animation: shakeCard 0.4s ease-in-out;
+    }
+
+    .login-brand-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .login-brand-icon {
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(135deg, #10b981, #047857);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    .login-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #f8fafc;
+    }
+
+    .login-subtitle {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Form Fields */
+    .login-form-group {
+      margin-bottom: 18px;
+    }
+
+    .login-form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+
+    .login-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .login-input-wrap .input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 15px;
+      color: #64748b;
+      pointer-events: none;
+    }
+
+    .login-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      padding: 12px 14px 12px 38px;
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .login-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .toggle-pwd-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px;
+    }
+
+    .login-error-msg {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn-login-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-login-submit:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      transform: translateY(-1px);
+    }
+
+    .btn-login-submit:active {
+      transform: translateY(0);
+    }
+
+    .back-to-app-link {
+      display: block;
+      text-align: center;
+      margin-top: 18px;
+      color: #94a3b8;
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-to-app-link:hover {
+      color: #34d399;
+    }
+
+    /* -------------------------------------------------------------
+       ADMIN APP LAYOUT (VISIBLE AFTER ADMIN LOGIN)
+       ------------------------------------------------------------- */
+    .admin-layout-wrapper {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+
+    /* Sidebar */
+    .admin-sidebar {
+      width: 250px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand {
+      padding: 24px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+    }
+
+    .nav-menu {
+      list-style: none;
+      padding: 16px 10px;
+      flex: 1;
+    }
+
+    .nav-menu li {
+      margin-bottom: 4px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .nav-link.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Main Area */
+    .admin-main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px;
+    }
+
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-num {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 6px;
+    }
+
+    /* Table & Chart Container */
+    .dashboard-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      padding: 12px 14px;
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .badge-pill {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-active { background: #dcfce7; color: #15803d; }
+    .badge-blocked { background: #fee2e2; color: #b91c1c; }
+    .badge-pending { background: #fef3c7; color: #b45309; }
+
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-block { background: #fee2e2; color: #b91c1c; }
+    .btn-verify { background: #dcfce7; color: #15803d; }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       1. ADMIN AUTHENTICATION GATEWAY (ONLY FOR ADMIN)
+       ========================================================================= -->
+  <div id="adminLoginOverlay" class="admin-login-overlay">
+    <div id="adminLoginBox" class="admin-login-box">
+      
+      <div class="login-brand-header">
+        <div class="login-brand-icon">🛡️</div>
+        <h2 class="login-title">WorkNear Admin Portal</h2>
+        <p class="login-subtitle">Administrator Authentication Required</p>
+      </div>
+
+      <!-- Error Alert Message -->
+      <div id="adminLoginError" class="login-error-msg">
+        ❌ Invalid admin username or password. Please try again.
+      </div>
+
+      <!-- Admin Login Form -->
+      <form id="adminLoginForm" onsubmit="handleAdminLoginSubmit(event)">
+        <div class="login-form-group">
+          <label class="login-form-label" for="adminUsernameInput">Admin Username</label>
+          <div class="login-input-wrap">
+            <span class="input-icon">👤</span>
+            <input 
+              type="text" 
+              id="adminUsernameInput" 
+              class="login-input" 
+              placeholder="Enter admin username" 
+              value=""
+              required 
+              autocomplete="username"
+            />
+          </div>
+        </div>
+
+        <div class="login-form-group">
+          <label class="login-form-label" for="adminPasswordInput">Admin Password</label>
+          <div class="login-input-wrap">
+            <span class="input-icon">🔒</span>
+            <input 
+              type="password" 
+              id="adminPasswordInput" 
+              class="login-input" 
+              placeholder="Enter admin password" 
+              value=""
+              required 
+              autocomplete="current-password"
+            />
+            <button type="button" class="toggle-pwd-btn" onclick="toggleAdminPasswordVisibility()" title="Show/Hide password">👁️</button>
+          </div>
+        </div>
+
+        <button type="submit" id="adminSubmitBtn" class="btn-login-submit">
+          <span>🛡️ Sign In to Admin Center</span>
+        </button>
+
+        <a href="index.html" class="back-to-app-link">
+          ← Return to Mobile App (Worker / Employer)
+        </a>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       2. ADMIN DASHBOARD CONTENT (REVEALED AFTER SUCCESSFUL AUTH)
+       ========================================================================= -->
+  <div id="adminAppLayout" class="admin-layout-wrapper" style="display: none;">
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <h3 style="font-size:16px;font-weight:800;">WorkNear</h3>
+          <p style="font-size:11px;color:#94a3b8;">Admin Control Center</p>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li><a href="#dashboard" class="nav-link active">📊 Dashboard Overview</a></li>
+        <li><a href="#users" class="nav-link">👥 User Management</a></li>
+        <li><a href="#workers" class="nav-link">👨‍🎓 Worker Accounts</a></li>
+        <li><a href="#employers" class="nav-link">🏪 Employer Accounts</a></li>
+        <li><a href="#jobs" class="nav-link">💼 Jobs Moderation</a></li>
+        <li><a href="#payments" class="nav-link">💳 Transaction Ledger</a></li>
+        <li><a href="#complaints" class="nav-link">⚠️ Complaints & Tickets</a></li>
+        <li style="margin-top:20px;border-top:1px solid rgba(255,255,255,0.08);padding-top:12px;">
+          <a href="index.html" class="nav-link" style="color:#10b981;">📱 Launch Mobile App</a>
+        </li>
+        <li style="margin-top:6px;">
+          <a href="javascript:void(0)" onclick="handleAdminLogout()" class="nav-link" style="color:#f87171;">🚪 Sign Out Admin</a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <div class="top-header">
+        <div>
+          <h1 style="font-size:24px;font-weight:800;">Platform Overview & Analytics</h1>
+          <p style="font-size:13px;color:var(--text-muted);margin-top:2px;">Real-time metrics for micro-jobs within 22 KM radiuses</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- Active Admin Tag -->
+          <div style="display: flex; align-items: center; gap: 6px; background: #e2e8f0; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; color: #1e293b;">
+            <span style="color:#10b981;">●</span> Logged in: <span id="adminDisplayUsername" style="color:#0f172a;">admin</span>
+          </div>
+
+          <!-- Global Role Switcher in Admin Header -->
+          <div style="display: flex; gap: 6px; background: #0f172a; padding: 4px 8px; border-radius: 9999px; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            <a href="index.html?role=worker" style="padding: 4px 10px; border-radius: 9999px; background: rgba(255,255,255,0.1); color: #cbd5e1; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; transition: all 0.2s;">👨‍🎓 Worker</a>
+            <a href="index.html?role=employer" style="padding: 4px 10px; border-radius: 9999px; background: rgba(255,255,255,0.1); color: #cbd5e1; text-decoration: none; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; transition: all 0.2s;">🏪 Employer</a>
+            <span style="padding: 4px 10px; border-radius: 9999px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 2px 8px rgba(16,185,129,0.4);">🛡️ Admin</span>
+          </div>
+
+          <button onclick="handleAdminLogout()" class="btn-action btn-block" style="padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;">
+            🚪 Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- 6 KPI CARDS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Total Users</div>
+          <div class="kpi-num">1,420</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Active Workers</div>
+          <div class="kpi-num" style="color:var(--primary);">890</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Registered Employers</div>
+          <div class="kpi-num">240</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Active Jobs Today</div>
+          <div class="kpi-num" style="color:#3b82f6;">78</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Completed Jobs</div>
+          <div class="kpi-num">1,150</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Total Transactions</div>
+          <div class="kpi-num" style="color:#10b981;">₹4,28,000</div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS SVG CHART -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <h3 style="font-size:16px;font-weight:700;">Weekly Micro-Job Volume Trend</h3>
+          <span style="font-size:12px;color:var(--text-muted);">Last 7 Days</span>
+        </div>
+        <div style="width:100%;height:160px;position:relative;">
+          <svg viewBox="0 0 700 140" style="width:100%;height:100%;">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10b981" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <path d="M 0 110 Q 100 80, 200 95 T 400 40 T 600 20 L 700 15 L 700 140 L 0 140 Z" fill="url(#chartGrad)"/>
+            <path d="M 0 110 Q 100 80, 200 95 T 400 40 T 600 20 L 700 15" fill="none" stroke="#10b981" stroke-width="3"/>
+            <circle cx="200" cy="95" r="4" fill="#10b981"/>
+            <circle cx="400" cy="40" r="4" fill="#10b981"/>
+            <circle cx="600" cy="20" r="4" fill="#10b981"/>
+          </svg>
+        </div>
+        <div style="display:flex;justify-content:space-between;color:var(--text-muted);font-size:11px;margin-top:8px;">
+          <span>Mon (42 jobs)</span>
+          <span>Tue (58 jobs)</span>
+          <span>Wed (64 jobs)</span>
+          <span>Thu (71 jobs)</span>
+          <span>Fri (95 jobs)</span>
+          <span>Sat (142 jobs)</span>
+          <span>Sun (Today - 78 jobs)</span>
+        </div>
+      </div>
+
+      <!-- USER MANAGEMENT TABLE -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <h3 style="font-size:16px;font-weight:700;">User Accounts Management</h3>
+          <input type="text" placeholder="Search user by name or phone..." style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;width:240px;">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Phone</th>
+              <th>Verification</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Muthu Kumar</strong><br><small style="color:var(--text-muted);">muthu@student.edu</small></td>
+              <td>Student Worker</td>
+              <td>9123456780</td>
+              <td><span class="badge-pill badge-active">Student ID ✓</span></td>
+              <td><span class="badge-pill badge-active">Active</span></td>
+              <td><button class="btn-action btn-block" onclick="alert('Worker status toggled')">Block</button></td>
+            </tr>
+            <tr>
+              <td><strong>Sri Murugan Stores (Karthik)</strong><br><small style="color:var(--text-muted);">murugan@gmail.com</small></td>
+              <td>Employer</td>
+              <td>9876543210</td>
+              <td><span class="badge-pill badge-active">GST Verified ✓</span></td>
+              <td><span class="badge-pill badge-active">Active</span></td>
+              <td><button class="btn-action btn-block" onclick="alert('Employer status toggled')">Block</button></td>
+            </tr>
+            <tr>
+              <td><strong>Chai Point Anna Nagar</strong><br><small style="color:var(--text-muted);">annanagar@chaipoint.in</small></td>
+              <td>Employer</td>
+              <td>9444123456</td>
+              <td><span class="badge-pill badge-active">FSSAI ✓</span></td>
+              <td><span class="badge-pill badge-active">Active</span></td>
+              <td><button class="btn-action btn-block">Block</button></td>
+            </tr>
+            <tr>
+              <td><strong>Suresh S.</strong><br><small style="color:var(--text-muted);">suresh@student.edu</small></td>
+              <td>Student Worker</td>
+              <td>9003112233</td>
+              <td><span class="badge-pill badge-pending">Pending Review</span></td>
+              <td><span class="badge-pill badge-active">Active</span></td>
+              <td><button class="btn-action btn-verify" onclick="alert('Worker verified')">Approve</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- COMPLAINTS & TICKETS TABLE -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <h3 style="font-size:16px;font-weight:700;">Recent Complaints & Support Tickets</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Reported By</th>
+              <th>Category</th>
+              <th>Issue Summary</th>
+              <th>Status</th>
+              <th>Resolution</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>#WN-1092</strong></td>
+              <td>Muthu (Worker)</td>
+              <td>Payment / Job Payout</td>
+              <td>Waiting for photo approval over 2 hours</td>
+              <td><span class="badge-pill badge-pending">Investigating</span></td>
+              <td><button class="btn-action btn-verify" onclick="alert('Ticket resolved')">Resolve</button></td>
+            </tr>
+            <tr>
+              <td><strong>#WN-1088</strong></td>
+              <td>Sri Murugan Stores</td>
+              <td>Worker Attendance</td>
+              <td>Worker arrived 15 mins late for evening shift</td>
+              <td><span class="badge-pill badge-active">Closed</span></td>
+              <td><span style="color:var(--text-muted);font-size:11px;">Resolved</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Config & Script -->
+  <script src="config.js"></script>
+  <script>
+    // Configuration & Backend API Resolution
+    const getApiBase = () => {
+      if (window.WORKNEAR_CONFIG && window.WORKNEAR_CONFIG.API_URL && window.WORKNEAR_CONFIG.API_URL.trim() !== '') {
+        return window.WORKNEAR_CONFIG.API_URL.replace(/\/+$/, '');
+      }
+      return 'https://work-near.onrender.com';
+    };
+
+    const API_BASE = getApiBase();
+    const ADMIN_SESSION_KEY = 'worknear_admin_auth';
+
+    // Toggle password visibility
+    function toggleAdminPasswordVisibility() {
+      const pwdInput = document.getElementById('adminPasswordInput');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+      } else {
+        pwdInput.type = 'password';
+      }
+    }
+
+    function showError(msg) {
+      const errBox = document.getElementById('adminLoginError');
+      const box = document.getElementById('adminLoginBox');
+      errBox.innerHTML = msg || '❌ Invalid admin username or password. Please try again.';
+      errBox.style.display = 'block';
+      box.classList.remove('shake-error');
+      void box.offsetWidth; // trigger reflow
+      box.classList.add('shake-error');
+    }
+
+    function hideError() {
+      const errBox = document.getElementById('adminLoginError');
+      if (errBox) errBox.style.display = 'none';
+    }
+
+    // Check existing auth state
+    function checkAdminAuth() {
+      try {
+        const stored = sessionStorage.getItem(ADMIN_SESSION_KEY);
+        if (stored) {
+          const authData = JSON.parse(stored);
+          if (authData && authData.loggedIn) {
+            showDashboard(authData.username || 'admin');
+            return true;
+          }
+        }
+      } catch (e) {
+        console.error("Auth check error:", e);
+      }
+      showLoginOverlay();
+      return false;
+    }
+
+    function showDashboard(username) {
+      document.getElementById('adminLoginOverlay').style.display = 'none';
+      document.getElementById('adminAppLayout').style.display = 'flex';
+      const userDisplay = document.getElementById('adminDisplayUsername');
+      if (userDisplay) userDisplay.textContent = username;
+    }
+
+    function showLoginOverlay() {
+      document.getElementById('adminLoginOverlay').style.display = 'flex';
+      document.getElementById('adminAppLayout').style.display = 'none';
+      hideError();
+    }
+
+    // Form submit handler
+    async function handleAdminLoginSubmit(e) {
+      if (e) e.preventDefault();
+      hideError();
+
+      const username = document.getElementById('adminUsernameInput').value.trim();
+      const password = document.getElementById('adminPasswordInput').value;
+      const submitBtn = document.getElementById('adminSubmitBtn');
+
+      if (!username || !password) {
+        showError('⚠️ Please enter both admin username and password.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳ Verifying Admin Credentials...</span>';
+
+      let authenticated = false;
+      let token = 'local-admin-token';
+
+      try {
+        // First try backend verification
+        const response = await fetch(`${API_BASE}/admin/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          authenticated = true;
+          token = data.token || token;
+        } else {
+          // If server rejects with 401 or other error
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.detail || 'Invalid admin username or password. Please try again.');
+        }
+      } catch (err) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>🛡️ Sign In to Admin Center</span>';
+        showError(`❌ ${err.message || 'Invalid admin username or password. Please try again.'}`);
+        return;
+      }
+
+      if (authenticated) {
+        // Save session
+        const sessionPayload = {
+          loggedIn: true,
+          username: username,
+          token: token,
+          loginTime: new Date().toISOString()
+        };
+        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionPayload));
+        
+        submitBtn.innerHTML = '<span>✅ Access Granted! Redirecting...</span>';
+        setTimeout(() => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🛡️ Sign In to Admin Center</span>';
+          showDashboard(username);
+        }, 400);
+      }
+    }
+
+    // Admin Logout Handler
+    function handleAdminLogout() {
+      if (confirm('Are you sure you want to sign out of the Admin Control Center?')) {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        showLoginOverlay();
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      checkAdminAuth();
+    });
+  </script>
+
+</body>
+</html>
