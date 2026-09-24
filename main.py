@@ -37,54 +37,55 @@ Base.metadata.create_all(bind=engine)
 
 def auto_migrate_columns():
     try:
-        with engine.begin() as conn:
-            # Check users table columns
-            result = conn.execute(text("PRAGMA table_info(users)"))
-            existing_cols = [row[1] for row in result.fetchall()]
-            new_cols = {
-                "password_hash": "TEXT",
-                "dob": "TEXT",
-                "category": "TEXT",
-                "hours": "TEXT",
-                "skills": "TEXT",
-                "profile_photo": "TEXT",
-                "updated_at": "TIMESTAMP"
-            }
-            for col, col_type in new_cols.items():
-                if col not in existing_cols:
-                    conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
+        if engine.dialect.name == "sqlite":
+            with engine.begin() as conn:
+                # Check users table columns
+                result = conn.execute(text("PRAGMA table_info(users)"))
+                existing_cols = [row[1] for row in result.fetchall()]
+                new_cols = {
+                    "password_hash": "TEXT",
+                    "dob": "TEXT",
+                    "category": "TEXT",
+                    "hours": "TEXT",
+                    "skills": "TEXT",
+                    "profile_photo": "TEXT",
+                    "updated_at": "TIMESTAMP"
+                }
+                for col, col_type in new_cols.items():
+                    if col not in existing_cols:
+                        conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} {col_type}"))
 
-            # Check jobs table columns
-            result_jobs = conn.execute(text("PRAGMA table_info(jobs)"))
-            existing_job_cols = [row[1] for row in result_jobs.fetchall()]
-            new_job_cols = {
-                "address": "TEXT DEFAULT 'Nearby Site'",
-                "duration_hours": "REAL DEFAULT 2.0",
-                "payment": "REAL DEFAULT 400.0",
-                "workers_needed": "INTEGER DEFAULT 1",
-                "radius_km": "REAL DEFAULT 22.0",
-                "category": "TEXT DEFAULT 'General'",
-                "status": "TEXT DEFAULT 'open'",
-                "created_at": "TIMESTAMP"
-            }
-            for col, col_type in new_job_cols.items():
-                if col not in existing_job_cols:
-                    conn.execute(text(f"ALTER TABLE jobs ADD COLUMN {col} {col_type}"))
+                # Check jobs table columns
+                result_jobs = conn.execute(text("PRAGMA table_info(jobs)"))
+                existing_job_cols = [row[1] for row in result_jobs.fetchall()]
+                new_job_cols = {
+                    "address": "TEXT DEFAULT 'Nearby Site'",
+                    "duration_hours": "REAL DEFAULT 2.0",
+                    "payment": "REAL DEFAULT 400.0",
+                    "workers_needed": "INTEGER DEFAULT 1",
+                    "radius_km": "REAL DEFAULT 22.0",
+                    "category": "TEXT DEFAULT 'General'",
+                    "status": "TEXT DEFAULT 'open'",
+                    "created_at": "TIMESTAMP"
+                }
+                for col, col_type in new_job_cols.items():
+                    if col not in existing_job_cols:
+                        conn.execute(text(f"ALTER TABLE jobs ADD COLUMN {col} {col_type}"))
 
-            # Check applications table columns
-            result_apps = conn.execute(text("PRAGMA table_info(applications)"))
-            existing_app_cols = [row[1] for row in result_apps.fetchall()]
-            new_app_cols = {
-                "status": "TEXT DEFAULT 'applied'",
-                "proof_url": "TEXT",
-                "updated_at": "TIMESTAMP",
-                "created_at": "TIMESTAMP"
-            }
-            for col, col_type in new_app_cols.items():
-                if col not in existing_app_cols:
-                    conn.execute(text(f"ALTER TABLE applications ADD COLUMN {col} {col_type}"))
+                # Check applications table columns
+                result_apps = conn.execute(text("PRAGMA table_info(applications)"))
+                existing_app_cols = [row[1] for row in result_apps.fetchall()]
+                new_app_cols = {
+                    "status": "TEXT DEFAULT 'applied'",
+                    "proof_url": "TEXT",
+                    "updated_at": "TIMESTAMP",
+                    "created_at": "TIMESTAMP"
+                }
+                for col, col_type in new_app_cols.items():
+                    if col not in existing_app_cols:
+                        conn.execute(text(f"ALTER TABLE applications ADD COLUMN {col} {col_type}"))
     except Exception as e:
-        print("Auto-migration notice (PRAGMA or SQLite specific):", e)
+        print("Auto-migration notice:", e)
 
 auto_migrate_columns()
 
@@ -101,11 +102,14 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Enable CORS for Frontend & WebView
+# Enable CORS for Frontend, WebView, and Localhost
+cors_origins_env = os.getenv("FRONTEND_URL", "")
+allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()] if cors_origins_env else ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=allowed_origins if "*" not in allowed_origins else ["*"],
+    allow_credentials=True if "*" not in allowed_origins else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -230,11 +234,20 @@ def get_current_user(authorization: Optional[str] = Header(None), db: Session = 
 # ------------------------------------------------------------------------------
 @app.get("/")
 def root():
+    db_name = "PostgreSQL" if "postgresql" in str(engine.url) else "SQLite (worknear.db)"
     return {
         "app": "WorkNear API",
         "status": "online",
-        "database": "SQLite (worknear.db)",
+        "database": db_name,
         "docs": "/docs"
+    }
+
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "app": "WorkNear API",
+        "version": "2.0.0"
     }
 
 # In-memory OTP storage (phone -> {"otp": "...", "expires_at": ...})

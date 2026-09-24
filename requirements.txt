@@ -1,5 +1,9 @@
-fastapi
-uvicorn[standard]
-sqlalchemy
-python-multipart
-psycopg[binary]
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+sqlalchemy>=2.0.0
+python-multipart>=0.0.9
+psycopg[binary]>=3.1.0
+psycopg2-binary>=2.9.9
+pyjwt>=2.8.0
+bcrypt>=4.0.0
+pydantic>=2.0.0
