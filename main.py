@@ -104,7 +104,20 @@ app = FastAPI(
 
 # Enable CORS for Frontend, WebView, and Localhost
 cors_origins_env = os.getenv("FRONTEND_URL", "")
-allowed_origins = [o.strip() for o in cors_origins_env.split(",") if o.strip()] if cors_origins_env else ["*"]
+default_allowed = [
+    "https://work-near-job.vercel.app",
+    "https://worknear.netlify.app",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8000",
+]
+if cors_origins_env:
+    custom_origins = [o.strip().rstrip("/") for o in cors_origins_env.split(",") if o.strip()]
+    allowed_origins = list(set(default_allowed + custom_origins))
+else:
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,

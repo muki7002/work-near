@@ -51,7 +51,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const roleParam = urlParams.get('role');
   if (roleParam === 'admin') {
-    window.location.href = 'admin.html';
+    window.location.href = '/admin.html';
     return;
   }
   if (roleParam === 'employer' || roleParam === 'worker') {
@@ -205,7 +205,7 @@ function navigateBack() {
 // ------------------------------------------------------------------------------
 function switchAppRole(role) {
   if (role === 'admin') {
-    window.location.href = 'admin.html';
+    window.location.href = '/admin.html';
     return;
   }
 

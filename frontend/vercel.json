@@ -1,5 +1,4 @@
 {
-  "outputDirectory": "frontend",
   "cleanUrls": false,
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" },
