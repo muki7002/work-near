@@ -324,6 +324,82 @@ button, input, select, textarea {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ==============================================================================
+   SPLASH SCREEN (PROFESSIONAL BRAND ONBOARDING)
+   ============================================================================== */
+.splash-container {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.splash-logo-box {
+  animation: splashFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.splash-logo-img {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(16, 185, 129, 0.25);
+  object-fit: contain;
+}
+
+.splash-app-title {
+  font-size: 32px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin-top: 20px;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+  animation: splashFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.splash-tagline {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 36px;
+  animation: splashFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.splash-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.6s ease-out 0.4s both;
+}
+
+.splash-spinner {
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid var(--border-light);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: splashSpin 0.8s linear infinite;
+}
+
+@keyframes splashFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes splashSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Bottom Navigation Bar */
 .bottom-nav {
   height: var(--bottombar-height);

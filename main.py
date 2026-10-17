@@ -302,7 +302,13 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
     existing = db.query(User).filter_by(phone=phone_clean).first()
     if existing:
-        # If user already registered, return their existing account gracefully
+        # If user already registered, update role if registering as different role
+        if req.role in ["worker", "employer"] and existing.role != req.role:
+            existing.role = req.role
+            if req.name and req.name.strip():
+                existing.name = req.name.strip()
+            db.commit()
+            db.refresh(existing)
         token = create_jwt_token(existing.id, existing.role)
         return {
             "message": "User account already exists. Logged in successfully.",
@@ -365,7 +371,7 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     if not user:
         # Seamlessly auto-register on first login (OTP style onboarding)
         default_name = f"User {phone_clean[-4:]}"
-        role = "worker"
+        role = req.role if req.role in ["worker", "employer"] else "worker"
         user = User(
             id=str(uuid.uuid4()),
             name=default_name,
@@ -374,15 +380,19 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
             password_hash=hash_password(req.password or "password123"),
             role=role,
             dob="2000-01-01",
-            category="Retail & Supermarket Helper",
-            hours="Flexible Hours",
-            skills='["General Shift Assistant"]',
+            category="Retail & Supermarket Helper" if role == "worker" else None,
+            hours="Flexible Hours" if role == "worker" else None,
+            skills='["General Shift Assistant"]' if role == "worker" else None,
             lat=13.0827,
             lon=80.2707,
             work_on=True
         )
         db.add(user)
         db.add(Wallet(user_id=user.id, balance=0.0))
+        db.commit()
+        db.refresh(user)
+    elif req.role and req.role in ["worker", "employer"] and user.role != req.role:
+        user.role = req.role
         db.commit()
         db.refresh(user)
     

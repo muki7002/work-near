@@ -3,13 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- ===== PWA / Mobile App Metadata ===== -->
   <meta name="theme-color" content="#10b981">
+  <meta name="application-name" content="WorkNear">
+  <meta name="description" content="WorkNear - Find and Connect with Nearby Work Opportunities">
+
+  <!-- Apple PWA / iOS Home Screen support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WorkNear">
+
+  <!-- Microsoft Tiles -->
+  <meta name="msapplication-TileColor" content="#10b981">
+  <meta name="msapplication-TileImage" content="/icon-192.png">
+
   <title>WorkNear — Find Work. Work Nearby. Earn.</title>
-  
+
+  <!-- ===== PWA Manifest ===== -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- ===== Icons ===== -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
+  <!-- ===== Fonts ===== -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
+
+  <!-- ===== App Stylesheet ===== -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -19,7 +43,7 @@
   <div id="appRoot">
 
     <!-- Global Top Bar Above Application: Worker / Employer / Admin Switcher -->
-    <div class="role-switch-bar" id="roleSwitchBar">
+    <div class="role-switch-bar" id="roleSwitchBar" style="display: none;">
       <div class="brand-mini" onclick="switchAppRole('worker')" style="cursor: pointer; display: flex; align-items: center; gap: 5px;">
         <span style="font-size: 13px;">⚡</span>
         <span style="font-weight: 800; font-size: 11px; letter-spacing: 0.5px;">WORKNEAR</span>
@@ -67,22 +91,14 @@
            1. SPLASH SCREEN
            ==================================================================== -->
       <section class="screen-view active" id="screenSplash">
-        <div style="min-height: 80vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px;">
-          <div style="width: 88px; height: 88px; border-radius: 26px; background: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 48px; color: #fff; box-shadow: 0 12px 30px var(--primary-glow); margin-bottom: 24px; animation: pulseAnim 2s infinite;">
-            ⚡
+        <div class="splash-container">
+          <div class="splash-logo-box">
+            <img src="splash-logo.png" alt="WorkNear Logo" class="splash-logo-img">
           </div>
-          <h1 style="font-size: 32px; font-weight: 900; letter-spacing: -1px; margin-bottom: 6px;">WORKNEAR</h1>
-          <p style="font-size: 15px; color: var(--text-secondary); margin-bottom: 36px; font-weight: 500;">
-            Find Work. Work Nearby. Earn.
-          </p>
-
-          <div style="width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px;">
-            <button class="btn btn-primary btn-block" onclick="navigateTo('screenOnboarding')">
-              Get Started →
-            </button>
-            <button class="btn btn-outline btn-block" onclick="navigateTo('screenLogin')">
-              Sign In to Account
-            </button>
+          <h1 class="splash-app-title">WORKNEAR</h1>
+          <p class="splash-tagline">Find Local Jobs. Work Nearby.</p>
+          <div class="splash-loader">
+            <span class="splash-spinner"></span>
           </div>
         </div>
       </section>
@@ -119,9 +135,17 @@
           <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Welcome to WorkNear</h2>
           <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Enter your registered credentials to sign in</p>
 
-          <div class="role-hint-box" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Logging in as:</span>
-            <span id="loginRoleBadge" class="badge badge-approved" style="font-size: 11px;">👨‍🎓 Worker</span>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">I am a *</label>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="loginRoleWorkerBtn" class="btn btn-primary" style="flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 700;" onclick="switchAppRole('worker')">
+                👨‍🎓 Worker
+              </button>
+              <button type="button" id="loginRoleEmployerBtn" class="btn btn-outline" style="flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 700;" onclick="switchAppRole('employer')">
+                🏪 Employer
+              </button>
+            </div>
+            <span id="loginRoleBadge" style="display: none;"></span>
           </div>
 
           <div class="form-group">
@@ -165,9 +189,17 @@
           <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 4px;">Create Account</h2>
           <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">Join WORKNEAR to find nearby jobs and earn</p>
 
-          <div class="role-hint-box" style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; background: var(--bg-subtle); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-light);">
-            <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Account Type:</span>
-            <span id="regRoleBadge" class="badge badge-approved" style="font-size: 11px;">👨‍🎓 Worker</span>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label class="form-label">I am registering as *</label>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" id="regRoleWorkerBtn" class="btn btn-primary" style="flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 700;" onclick="switchAppRole('worker')">
+                👨‍🎓 Worker
+              </button>
+              <button type="button" id="regRoleEmployerBtn" class="btn btn-outline" style="flex: 1; padding: 9px 12px; font-size: 13px; font-weight: 700;" onclick="switchAppRole('employer')">
+                🏪 Employer
+              </button>
+            </div>
+            <span id="regRoleBadge" style="display: none;"></span>
           </div>
 
           <div class="form-group">
@@ -925,9 +957,14 @@
               <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 700; text-transform: uppercase;">Employer Dashboard</span>
               <h3 style="font-size: 18px; font-weight: 800;" id="empBusinessName">My Business</h3>
             </div>
-            <button class="btn btn-primary btn-sm" onclick="navigateTo('screenCreateJob')">
-              ➕ Post Job
-            </button>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-primary btn-sm" onclick="navigateTo('screenCreateJob')">
+                ➕ Post Job
+              </button>
+              <button class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);" onclick="logoutWorker()" title="Log Out">
+                🚪 Logout
+              </button>
+            </div>
           </div>
 
           <div class="stats-grid" style="margin-bottom: 0;">
@@ -1172,5 +1209,20 @@
 
   <script src="config.js"></script>
   <script src="app.js"></script>
+
+  <!-- ===== PWA Service Worker Registration ===== -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then(function (registration) {
+            console.log('[WorkNear] Service Worker registered. Scope:', registration.scope);
+          })
+          .catch(function (err) {
+            console.warn('[WorkNear] Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
 </body>
 </html>

@@ -19,6 +19,7 @@ class LoginRequest(BaseModel):
     phone: str
     otp: Optional[str] = None
     password: Optional[str] = None
+    role: Optional[str] = None
 
 class SendOtpRequest(BaseModel):
     phone: str

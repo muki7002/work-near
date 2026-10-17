@@ -58,7 +58,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     state.currentRole = roleParam;
   }
 
-  // Restore saved persistent session
+  // Restore saved persistent session in background while splash screen is active
   await restoreSavedSession();
 
   // Synchronize top pills and auth forms
@@ -68,12 +68,25 @@ window.addEventListener('DOMContentLoaded', async () => {
   setLoginRole(state.currentRole);
   setRegRole(state.currentRole);
 
-  // Load jobs and data
-  await loadNearbyJobsFromBackend();
+  // Preload data in background
+  loadNearbyJobsFromBackend();
   if (state.isLoggedIn && state.currentUser) {
-    await loadWorkerApplications();
-    await loadWorkerWallet();
+    if (state.currentRole === 'worker') {
+      loadWorkerApplications();
+      loadWorkerWallet();
+    } else {
+      loadEmployerJobs();
+    }
   }
+
+  // Display splash screen for ~2 seconds on launch/reload, then automatically route
+  setTimeout(() => {
+    if (state.isLoggedIn && state.currentUser) {
+      navigateTo(state.currentRole === 'worker' ? 'screenWorkerHome' : 'screenEmployerHome');
+    } else {
+      navigateTo('screenLogin');
+    }
+  }, 2000);
 });
 
 // ------------------------------------------------------------------------------
@@ -130,10 +143,12 @@ async function restoreSavedSession() {
 function navigateTo(screenId) {
   const publicScreens = ['screenSplash', 'screenOnboarding', 'screenLogin', 'screenRegister'];
 
-  // Auth Guard: Enforce login/registration before accessing inner screens
+  // Auth Guard: Enforce login/registration before accessing inner screens or dashboards
   if (!state.isLoggedIn && !publicScreens.includes(screenId)) {
     showToast("🔒 Please login or register first to open the app", "🔑", 3000);
     screenId = 'screenLogin';
+  } else if (state.isLoggedIn && (screenId === 'screenLogin' || screenId === 'screenRegister')) {
+    screenId = state.currentRole === 'worker' ? 'screenWorkerHome' : 'screenEmployerHome';
   }
 
   const current = document.querySelector('.screen-view.active');
@@ -149,6 +164,11 @@ function navigateTo(screenId) {
   // Update Top Nav Visibility
   const topNav = $('topNavBar');
   const bottomNav = $('mainBottomNav');
+  const roleSwitchBar = $('roleSwitchBar');
+
+  if (roleSwitchBar) {
+    roleSwitchBar.style.display = screenId === 'screenSplash' ? 'none' : 'flex';
+  }
 
   if (['screenSplash', 'screenOnboarding', 'screenLogin', 'screenRegister'].includes(screenId) || !state.isLoggedIn) {
     if (topNav) topNav.style.display = 'none';
@@ -214,17 +234,17 @@ function switchAppRole(role) {
   if ($('pillEmployer')) $('pillEmployer').classList.toggle('active', role === 'employer');
   if ($('pillAdmin')) $('pillAdmin').classList.toggle('active', false);
 
-  // Synchronize role badges and fields in login and register screens
+  // Synchronize role buttons and fields in login and register screens
   setLoginRole(role);
   setRegRole(role);
 
   if (!state.isLoggedIn) {
-    if (state.activeScreen === 'screenRegister') {
+    if (state.activeScreen !== 'screenRegister' && state.activeScreen !== 'screenLogin') {
+      navigateTo('screenLogin');
+    } else if (state.activeScreen === 'screenRegister') {
       showToast(`Selected ${role === 'worker' ? 'Worker' : 'Employer'} Registration`, role === 'worker' ? '👨‍🎓' : '🏪');
     } else if (state.activeScreen === 'screenLogin') {
       showToast(`Selected ${role === 'worker' ? 'Worker' : 'Employer'} Login`, role === 'worker' ? '👨‍🎓' : '🏪');
-    } else {
-      showToast(`Switched mode to ${role === 'worker' ? 'Worker' : 'Employer'}`, role === 'worker' ? '👨‍🎓' : '🏪');
     }
     return;
   }
@@ -244,6 +264,13 @@ function setLoginRole(role) {
   if ($('pillEmployer')) $('pillEmployer').classList.toggle('active', role === 'employer');
   if ($('pillAdmin')) $('pillAdmin').classList.toggle('active', false);
 
+  if ($('loginRoleWorkerBtn')) {
+    $('loginRoleWorkerBtn').className = role === 'worker' ? 'btn btn-primary' : 'btn btn-outline';
+  }
+  if ($('loginRoleEmployerBtn')) {
+    $('loginRoleEmployerBtn').className = role === 'employer' ? 'btn btn-primary' : 'btn btn-outline';
+  }
+
   if ($('loginRoleBadge')) {
     $('loginRoleBadge').textContent = role === 'worker' ? '👨‍🎓 Worker' : '🏪 Employer';
     $('loginRoleBadge').className = role === 'worker' ? 'badge badge-approved' : 'badge badge-pending';
@@ -255,6 +282,13 @@ function setRegRole(role) {
   if ($('pillWorker')) $('pillWorker').classList.toggle('active', role === 'worker');
   if ($('pillEmployer')) $('pillEmployer').classList.toggle('active', role === 'employer');
   if ($('pillAdmin')) $('pillAdmin').classList.toggle('active', false);
+
+  if ($('regRoleWorkerBtn')) {
+    $('regRoleWorkerBtn').className = role === 'worker' ? 'btn btn-primary' : 'btn btn-outline';
+  }
+  if ($('regRoleEmployerBtn')) {
+    $('regRoleEmployerBtn').className = role === 'employer' ? 'btn btn-primary' : 'btn btn-outline';
+  }
 
   const isWorker = role === 'worker';
   if ($('regCategoryGroup')) $('regCategoryGroup').style.display = isWorker ? 'block' : 'none';
@@ -407,12 +441,14 @@ async function verifyAndLogin() {
     return;
   }
 
+  const selectedRole = state.currentRole || 'worker';
+
   try {
     showToast("Verifying OTP & logging in...", "⏳");
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone, otp })
+      body: JSON.stringify({ phone, otp, role: selectedRole })
     });
 
     const data = await res.json();
@@ -425,7 +461,8 @@ async function verifyAndLogin() {
     state.isLoggedIn = true;
     state.authToken = data.token;
     state.currentUser = data.user;
-    state.currentRole = data.user.role || state.currentRole || 'worker';
+    state.currentRole = selectedRole || (data.user && data.user.role) || 'worker';
+    if (data.user) data.user.role = state.currentRole;
     state.dutyOn = data.user.work_on !== false;
 
     // Update role buttons
@@ -439,12 +476,12 @@ async function verifyAndLogin() {
     localStorage.setItem('worknear_auth_user', JSON.stringify(data.user));
 
     renderUserProfile();
-    await loadWorkerApplications();
-    await loadWorkerWallet();
-
     if (state.currentRole === 'worker') {
+      await loadWorkerApplications();
+      await loadWorkerWallet();
       navigateTo('screenWorkerHome');
     } else {
+      await loadEmployerJobs();
       navigateTo('screenEmployerHome');
     }
 
@@ -563,6 +600,8 @@ async function submitWorkerRegistration() {
     state.isLoggedIn = true;
     state.authToken = data.token;
     state.currentUser = data.user;
+    state.currentRole = state.currentRole || (data.user && data.user.role) || 'worker';
+    if (data.user) data.user.role = state.currentRole;
     state.dutyOn = data.user.work_on !== false;
 
     // Update role buttons
@@ -576,12 +615,12 @@ async function submitWorkerRegistration() {
     localStorage.setItem('worknear_auth_user', JSON.stringify(data.user));
 
     renderUserProfile();
-    await loadWorkerApplications();
-    await loadWorkerWallet();
-
     if (state.currentRole === 'worker') {
+      await loadWorkerApplications();
+      await loadWorkerWallet();
       navigateTo('screenWorkerHome');
     } else {
+      await loadEmployerJobs();
       navigateTo('screenEmployerHome');
     }
 
@@ -594,6 +633,7 @@ async function submitWorkerRegistration() {
 
 async function quickLoginDemo(role) {
   const targetRole = role || state.currentRole || 'worker';
+  setLoginRole(targetRole);
   const defaultPhone = targetRole === 'employer' ? '9876543210' : '9123456780';
 
   if ($('loginPhoneInput')) $('loginPhoneInput').value = defaultPhone;
@@ -624,6 +664,8 @@ function logoutWorker() {
   navigateTo('screenLogin');
   showToast("Logged out successfully. App locked.", "🔒", 3000);
 }
+window.logoutUser = logoutWorker;
+window.logoutWorker = logoutWorker;
 
 // ------------------------------------------------------------------------------
 // USER PROFILE: RENDERING & EDITING (DATABASE SYNC)
